@@ -32,20 +32,20 @@ frequency = ["1", "month"]
 [channel]
 [channel.api]
 port = 3000
-limit = 2
-frequency = ["1", "day"]
 
 [channel.matrix]
+enbale = false
 token = "TEST_TOKEN"
 userId = "@test-bot:matrix.org"
-limit = 2
-frequency = ["1", "day"]
 
 [channel.discord]
+enbale = false
 activeChannelName = 'faucet-test-channel'
 token = "TEST_TOKEN"
-limit = 2
-frequency = ["1", "day"]
+
+[channel.telegram]
+enable = false
+token = "TOKEN"
 
 [template]
 usage = """
@@ -56,17 +56,17 @@ Usage:
 """
 balance = "<%= account %> The faucet has ${balance} remaining."
 success = """
-  Sent <%= account %> <%= amount %>. [View on Subscan](https://acala-testnet.subscan.io/extrinsic/<%= tx %>)
+  Sent <%= account %> <%= amount %>. [View on Subscan](http://45.77.243.246:8080/ares/transaction/<%= tx %>)
 """
 
 riotSuccess = """
-  Sent <%= account %> <%= amount %>. <a href="https://acala-testnet.subscan.io/extrinsic/<%= tx %>">Viewd on Subscan</a>
+  Sent <%= account %> <%= amount %>. <a href="http://45.77.243.246:8080/ares/transaction/<%= tx %>">Viewd on Subscan</a>
 """
 
 [template.error]
 "COMMON_ERROR" = "<%= account %> something error, please check your input."
 "PADDING_TASK_MAX" = "Fauct is busy, please retry later."
-"LIMIT" = "<%= account %> has reached their quota. Only request 2 per 1 day."
+"LIMIT" = "<%= account %> has reached their quota. Only request <%= limit %> per <%= frequency %>."
 "NO_STRATEGY" = "No strategy found."
 "CHECK_TX_FAILED" = "Build Extrinsic Failed"
 "CHECK_LIMIT_FAILED" = "Check Limit Error"

@@ -41,6 +41,10 @@ export interface Config {
       activeChannelName: string;
       token: string;
     };
+    telegram: {
+      enable: boolean;
+      token: string;
+    }
   };
   template: {
     [k in string]: string;

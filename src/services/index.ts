@@ -57,6 +57,8 @@ export class Service {
   private sendMessageHandler!: Record<string, MessageHandler>;
   private killCountdown: number = 1000 * 60;
   private killTimer!: NodeJS.Timeout | null;
+  private chainDecimals!: number;
+  private chainToken!: String;
 
   constructor({
     account,
@@ -101,6 +103,10 @@ export class Service {
 
     this.api.on("connected", this.onConnected);
 
+    const properties = await this.api.rpc.system.properties()
+    this.chainDecimals = properties.tokenDecimals.unwrap()[0].toNumber().valueOf()
+    this.chainToken = properties.tokenSymbol.unwrap()[0].toString()
+
     this.task.process((task: TaskData) => {
       const { address, channel, strategy, params } = task;
       const account = channel.account;
@@ -119,7 +125,13 @@ export class Service {
           sendMessage(
             channel,
             params
-	      .map((item) => `${item.token}: ${formatToReadable(item.balance,this.wallet.getToken(item.token).decimal)}`)
+	      .map((item) => {
+          if (item.token == 'DEFAULT') {
+            return `${this.chainToken}: ${formatToReadable(item.balance, this.chainDecimals)}`
+          } else {
+            return `${item.token}: ${formatToReadable(item.balance, this.wallet.getToken(item.token).decimal)}`
+          }
+        })
               .join(", "),
             tx
           );
@@ -145,6 +157,14 @@ export class Service {
   }
 
   public async queryBalance() {
+    if (this.config.assets.length == 0 || this.config.assets[0] == 'DEFAULT'){
+      const { nonce, data: balance } = await this.api.query.system.account(this.account.address);
+      return [{
+        token: this.chainToken,
+        balance: formatToReadable((balance.free as Balance).toString(), this.chainDecimals)
+      }]
+    }
+
     const result = await Promise.all(
       this.config.assets.map((token) =>
         (this.api as any).derive.currencies.balance(
@@ -234,6 +254,10 @@ export class Service {
   }
 
   public buildTx(config: SendConfig) {
+    if (config.length == 1 && config[0].token == 'DEFAULT') {
+      const { token, balance, dest } = config[0]
+      return this.api.tx.balances.transfer(dest, balance)
+    }
     return this.api.tx.utility.batchAll(
       config.map(({ token, balance, dest }) =>
         this.api.tx.currencies.transfer(dest, { Token: token }, balance)
@@ -274,7 +298,11 @@ export class Service {
     }
 
     if (strategyDetail.limit && accountCount >= strategyDetail.limit) {
-      throw new Error(this.getErrorMessage("LIMIT", { account: channel.account || address }));
+      this.getErrorMessage('LIMIT', {
+        account: channel.account || address,
+        limit: strategyDetail.limit,
+        frequency: strategyDetail.frequency.join(' ')
+      })
     }
 
     // check address limit
@@ -287,16 +315,30 @@ export class Service {
 
     if (strategyDetail.limit && addressCount >= strategyDetail.limit) {
       throw new Error(
-        this.getErrorMessage("LIMIT", { account: channel.account || address })
+        this.getErrorMessage('LIMIT', {
+          account: channel.account || address,
+          limit: strategyDetail.limit,
+          frequency: strategyDetail.frequency.join(' ')
+        })
       );
     }
 
     // check build tx
-    const params = strategyDetail.amounts.map((item) => ({
-      token: item.asset,
-      balance: formatToSendable(item.amount, this.wallet.getToken(item.asset).decimal),
-      dest: address,
-    }));
+    let params;
+    if (strategyDetail.amounts.length == 1 && strategyDetail.amounts[0].asset == 'DEFAULT') {
+      const item = strategyDetail.amounts[0]
+      params = [{
+        token: item.asset,
+        balance: formatToSendable(item.amount, this.chainDecimals),
+        dest: address,
+      }]
+    } else {
+      params = strategyDetail.amounts.map((item) => ({
+        token: item.asset,
+        balance: formatToSendable(item.amount, this.wallet.getToken(item.asset).decimal),
+        dest: address,
+      }))
+    }
 
     try {
       this.buildTx(params);
