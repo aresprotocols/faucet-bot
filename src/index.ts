@@ -1,4 +1,5 @@
 import { Keyring, WsProvider } from "@polkadot/api";
+import { OverrideBundleType } from "@polkadot/types/types";
 import { assert } from "@polkadot/util";
 import { waitReady } from "@polkadot/wasm-crypto";
 import { options } from "@acala-network/api";
@@ -35,14 +36,12 @@ async function run() {
   });
 
   const provider = new WsProvider(config.faucet.endpoint);
-  const aresTypes = ares_type.types;
-  if (aresTypes && aresTypes.length > 0) {
-    const ares: OverrideVersionedType = aresTypes[0];
-    let types = ares.types;
-    await service.connect(options({types, provider }));
-  } else {
-    await service.connect(options({provider }));
-  }
+
+  // NOTE: The mapping is done from specName in state.getRuntimeVersion
+  // https://github.com/aresprotocols/apps/blob/master/packages/apps-config/src/api/spec/index.ts
+  // TODO npm install
+  const typesBundle: OverrideBundleType = { spec: { 'ares-gladios': ares_type } };
+  await service.connect(options({typesBundle, provider }));
 
   const ss58 = service.getSS58();
   keyring.setSS58Format(ss58);
