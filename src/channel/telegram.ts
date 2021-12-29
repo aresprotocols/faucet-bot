@@ -4,6 +4,7 @@ import { Service } from '../services'
 import { ChannelBase } from './base'
 import * as sdk from 'telegraf'
 import { Message } from 'typegram'
+import { Keyring } from '@polkadot/api'
 
 interface TelegramChannelConfig {
   config: Config['channel']['telegram'];
@@ -15,20 +16,21 @@ export class TelegramChannel extends ChannelBase {
   private client: sdk.Telegraf
   private service: Service
   private config: Config['channel']['telegram']
+  private keyring: Keyring
 
-  constructor (config: TelegramChannelConfig) {
+  constructor (config: TelegramChannelConfig, keyring: Keyring) {
     super('telegram', config.storage)
 
     this.config = config.config
     this.service = config.service
-
+    this.keyring = keyring
     // create telegram client
     this.client = new sdk.Telegraf(this.config.token)
     this.sendSuccessMessage = this.sendSuccessMessage.bind(this)
   }
 
   async start () {
-    this.service.registMessageHander(this.channelName, this.sendSuccessMessage)
+    this.service.registerMessageHandler(this.channelName, this.sendSuccessMessage)
     this.client.start((ctx) => ctx.reply('Welcome'))
     const usage = this.service.usage().replace(/!/g, '/')
 
@@ -67,6 +69,12 @@ export class TelegramChannel extends ChannelBase {
 
       if (!msg.text) return
       const [_, address] = this.getCommand(msg.text)
+      try {
+        this.keyring.decodeAddress(address, false, this.service.getSS58())
+      } catch (e) {
+        ctx.reply(this.service.getErrorMessage('ADDRESS_ERROR', { address }))
+        return
+      }
       try {
         await this.service.faucet({
           strategy: "normal",

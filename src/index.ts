@@ -11,6 +11,9 @@ import api from "./channel/api";
 import { Service } from "./services";
 import { MatrixChannel } from "./channel/matrix";
 import { DiscordChannel } from "./channel/discord";
+import { TelegramChannel } from './channel/telegram'
+import ares_type from './type-spec'
+import { OverrideVersionedType } from '@polkadot/types/types/registry'
 
 async function run() {
   const config = loadConfig();
@@ -21,12 +24,10 @@ async function run() {
   await waitReady();
 
   const keyring = new Keyring({ type: "sr25519" });
-  const account = keyring.addFromMnemonic(config.faucet.account.mnemonic);
   const storage = new Storage(config.storage);
   const task = new TaskQueue(config.task);
 
   const service = new Service({
-    account,
     storage,
     task,
     config: config.faucet,
@@ -34,8 +35,19 @@ async function run() {
   });
 
   const provider = new WsProvider(config.faucet.endpoint);
+  const aresTypes = ares_type.types;
+  if (aresTypes && aresTypes.length > 0) {
+    const ares: OverrideVersionedType = aresTypes[0];
+    let types = ares.types;
+    await service.connect(options({types, provider }));
+  } else {
+    await service.connect(options({provider }));
+  }
 
-  await service.connect(options({ provider }));
+  const ss58 = service.getSS58();
+  keyring.setSS58Format(ss58);
+  const account = keyring.addFromMnemonic(config.faucet.account.mnemonic);
+  service.setAccount(account);
 
   const chainName = await service.getChainName();
 
@@ -66,6 +78,17 @@ async function run() {
 
     await discord.start().then(() => {
       logger.info(`🚀 discord channel launced success`);
+    });
+  }
+
+  if (config.channel.telegram.enable){
+    const telegram = new TelegramChannel({
+      config: config.channel.telegram,
+      storage,
+      service,
+    },keyring);
+    await telegram.start().then(() => {
+      logger.info(`🚀 telegram channel launced success`);
     });
   }
 }

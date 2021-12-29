@@ -65,6 +65,7 @@ riotSuccess = """
 
 [template.error]
 "COMMON_ERROR" = "<%= account %> something error, please check your input."
+"ADDRESS_ERROR" = "<%= address %> address error, please convert you address. [View on Subscan](https://polkadot.subscan.io/tools/format_transform?input=<%= address %>&type=Ares"
 "PADDING_TASK_MAX" = "Fauct is busy, please retry later."
 "LIMIT" = "<%= account %> has reached their quota. Only request <%= limit %> per <%= frequency %>."
 "NO_STRATEGY" = "No strategy found."

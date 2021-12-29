@@ -30,7 +30,7 @@ export class DiscordChannel extends ChannelBase {
   async start() {
     await this.client.login(this.config.token);
 
-    this.service.registMessageHander(this.channelName, this.sendSuccessMessage);
+    this.service.registerMessageHandler(this.channelName, this.sendSuccessMessage);
     this.client.on("message", (msg) => {
       this.messageHandler(msg);
     });

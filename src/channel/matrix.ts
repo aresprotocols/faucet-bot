@@ -40,7 +40,7 @@ export class MatrixChannel extends ChannelBase {
   async start() {
     await this.client.startClient({ initialSyncLimit: 10 });
 
-    this.service.registMessageHander(this.channelName, this.sendSuccessMessage);
+    this.service.registerMessageHandler(this.channelName, this.sendSuccessMessage);
     this.client.on("Room.timeline", (event: any) => {
       this.messageHandler(event);
     });

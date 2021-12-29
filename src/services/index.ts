@@ -16,7 +16,6 @@ import { Deferred } from "../util/deferred";
 import { WalletPromise } from "@acala-network/sdk-wallet";
 
 interface FaucetServiceConfig {
-  account: KeyringPair;
   template: Config["template"];
   config: Config["faucet"];
   storage: Storage;
@@ -49,8 +48,8 @@ export function formatToSendable(
 export class Service {
   public api!: ApiPromise;
   private wallet!: WalletPromise;
-  private account: KeyringPair;
-  private template: Config["template"];
+  private account!: KeyringPair;
+  readonly template: Config["template"];
   private config: Config["faucet"];
   private storage: Storage;
   private task: TaskQueue;
@@ -59,15 +58,14 @@ export class Service {
   private killTimer!: NodeJS.Timeout | null;
   private chainDecimals!: number;
   private chainToken!: String;
+  private ss58!: number;
 
   constructor({
-    account,
     config,
     template,
     storage,
     task,
   }: FaucetServiceConfig) {
-    this.account = account;
     this.config = config;
     this.template = template;
     this.storage = storage;
@@ -106,6 +104,7 @@ export class Service {
     const properties = await this.api.rpc.system.properties()
     this.chainDecimals = properties.tokenDecimals.unwrap()[0].toNumber().valueOf()
     this.chainToken = properties.tokenSymbol.unwrap()[0].toString()
+    this.ss58 = properties.get('SS58Prefix') //SS58Format or SS58Prefix
 
     this.task.process((task: TaskData) => {
       const { address, channel, strategy, params } = task;
@@ -148,12 +147,16 @@ export class Service {
     });
   }
 
-  public registMessageHander(channel: string, handler: MessageHandler) {
+  public registerMessageHandler(channel: string, handler: MessageHandler) {
     this.sendMessageHandler[channel] = handler;
   }
 
   private getMessageHandler (channel: string) {
     return this.sendMessageHandler[channel];
+  }
+
+  public setAccount(account:KeyringPair){
+    this.account = account;
   }
 
   public async queryBalance() {
@@ -189,6 +192,10 @@ export class Service {
 
   public async getChainName() {
     return this.api.rpc.system.chain();
+  }
+
+  public getSS58(): number{
+    return this.ss58
   }
 
   public async sendTokens(config: SendConfig) {
