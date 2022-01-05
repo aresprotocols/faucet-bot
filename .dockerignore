@@ -1,0 +1,13 @@
+node_modules
+config.template.toml
+config.toml
+Dockerfile
+docker-compose.yml
+yarn.lock
+yarn-error.log
+.env
+.idea
+.git
+.gitignore
+.dockerignore
+logs

@@ -14,7 +14,6 @@ import { MatrixChannel } from "./channel/matrix";
 import { DiscordChannel } from "./channel/discord";
 import { TelegramChannel } from './channel/telegram'
 import ares_type from './type-spec'
-import { OverrideVersionedType } from '@polkadot/types/types/registry'
 
 async function run() {
   const config = loadConfig();
