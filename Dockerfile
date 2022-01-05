@@ -4,8 +4,10 @@ COPY . /faucet/
 
 WORKDIR /faucet
 
-RUN  npm install
+RUN yarn install
 
 ENV PATH="/faucet/node_modules/.bin:${PATH}"
 
-CMD ts-node src/index.ts
+#ENTRYPOINT ["/usr/bin/env"]
+
+#CMD ts-node src/index.ts

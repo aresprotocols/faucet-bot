@@ -3,7 +3,7 @@ config.template.toml
 config.toml
 Dockerfile
 docker-compose.yml
-yarn.lock
+#yarn.lock
 yarn-error.log
 .env
 .idea

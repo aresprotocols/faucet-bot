@@ -10,8 +10,8 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./config.toml:/faucet/config.toml
-    command:
-      - ts-node src/index.ts
+      - ./src:/faucet/src
+    entrypoint: "ts-node src/index.ts"
 
   redis:
     image: redis:6.2.6
