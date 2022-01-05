@@ -86,6 +86,7 @@ export class TelegramChannel extends ChannelBase {
             accountName: name,
           },
         });
+        ctx.reply(this.service.getMessage('tips'))
       } catch (e) {
         ctx.reply(
           e.message

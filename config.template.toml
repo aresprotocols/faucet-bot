@@ -58,7 +58,7 @@ balance = "<%= account %> The faucet has ${balance} remaining."
 success = """
   Sent <%= account %> <%= amount %>. [View on Subscan](http://45.77.243.246:8080/ares/transaction/<%= tx %>)
 """
-
+tips = "Your request is processing, please wait a moment."
 riotSuccess = """
   Sent <%= account %> <%= amount %>. <a href="http://45.77.243.246:8080/ares/transaction/<%= tx %>">Viewd on Subscan</a>
 """
