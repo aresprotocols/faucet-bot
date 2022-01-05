@@ -8,4 +8,4 @@ RUN  npm install
 
 ENV PATH="/faucet/node_modules/.bin:${PATH}"
 
-#CMD ts-node src/index.ts
+CMD ts-node src/index.ts
