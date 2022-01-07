@@ -3,6 +3,7 @@ import dayjs, { OpUnitType } from "dayjs";
 import { promisify } from "util";
 import { Database, OPEN_READWRITE } from 'sqlite3'
 import {User} from 'typegram'
+import { upperCase } from 'lodash'
 
 interface SqliteOpts{
   path: string
@@ -60,39 +61,15 @@ export class Storage {
   }
 
   async insertOrUpdateUser (user: User, address: string, token:string, amount: number) {
-    const query = function (db: Database, sql: string, params: any) {
-      return new Promise((resolve, reject) => {
-        db.get(sql, params, (err, rows) => {
-          if (err) {
-            reject(err)
-          } else {
-            resolve(rows)
-          }
-        })
-      })
-    }
-
-    const run = function (db: Database, sql: string, params: any) {
-      return new Promise((resolve, reject) => {
-        db.run(sql, params, (err) => {
-          if (err) {
-            reject(err)
-          } else {
-            resolve(undefined)
-          }
-        })
-      })
-    }
-
     try{
-      const row = await query(this.db,'select id from user where id = $id and address = $address and token = $token', {
+      const row = await wrapSqliteGet(this.db,'select id from user where id = $id and address = $address and token = $token', {
         '$id': user.id.toString(),
         '$address': address,
         '$token': token,
       })
       if (row) {
         // update data
-        await run(this.db, 'UPDATE user SET total_request = total_request + 1, amount = amount + $amount WHERE id = $id and address = $address and token = $token', {
+        await wrapSqliteRun(this.db, 'UPDATE user SET total_request = total_request + 1, amount = amount + $amount WHERE id = $id and address = $address and token = $token', {
           '$id': user.id.toString(),
           '$address': address,
           '$token': token,
@@ -110,10 +87,40 @@ export class Storage {
           '$total_request': 1,
           '$amount': amount
         }
-        await run(this.db, 'insert into user (id, address, token, username, last_name, first_name, total_request, amount) values ($id, $address, $token, $username, $last_name, $first_name, $total_request, $amount)', obj)
+        await wrapSqliteRun(this.db, 'insert into user (id, address, token, username, last_name, first_name, total_request, amount) values ($id, $address, $token, $username, $last_name, $first_name, $total_request, $amount)', obj)
       }
     } catch (e) {
       console.log(`err:${e}`)
     }
   }
+
+  async querySymbolInfo (symbol: string) {
+    return await wrapSqliteGet(this.db, 'select sum(total_request) as total_request, sum(amount) as amount, count(distinct id) as total_account, count(distinct address)  as total_address from user where upper(token)=$symbol', {
+      '$symbol': upperCase(symbol)
+    })
+  }
+}
+
+function wrapSqliteGet (db: Database, sql: string, params: any): Promise<any> {
+  return new Promise((resolve, reject) => {
+    db.get(sql, params, (err, rows) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(rows)
+      }
+    })
+  })
+}
+
+function wrapSqliteRun (db: Database, sql: string, params: any): Promise<any> {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, (err) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(undefined)
+      }
+    })
+  })
 }
