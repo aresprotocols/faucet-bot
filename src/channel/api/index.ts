@@ -7,7 +7,7 @@ import { Service } from "../../services";
 import { sendAssets } from "./faucet";
 import { Storage } from "../../util/storage";
 import { Config } from "../../util/config";
-import { info } from './info'
+import { symbolDetail, symbolInfo } from './info'
 
 export interface ApiConfig {
   config: Config['channel']['api']
@@ -33,10 +33,12 @@ export default async function (config: ApiConfig) {
   router.get("/balances", queryBalances(config.service));
 
   // send tokens
-  router.post("/faucet", sendAssets(config.service, config.storage, config.config));
+  // disable this API
+  // router.post("/faucet", sendAssets(config.service, config.storage, config.config));
 
   // query
-  router.get("/symbols/:symbol", info(config.service,config.storage))
+  router.get("/symbols/:symbol", symbolInfo(config.service,config.storage))
+  router.get("/symbols/:symbol/detail", symbolDetail(config.service,config.storage))
 
   app.use(router.routes());
   app.use(router.allowedMethods());

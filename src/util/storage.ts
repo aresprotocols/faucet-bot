@@ -95,7 +95,13 @@ export class Storage {
   }
 
   async querySymbolInfo (symbol: string) {
-    return await wrapSqliteGet(this.db, 'select sum(total_request) as total_request, sum(amount) as amount, count(distinct id) as total_account, count(distinct address)  as total_address from user where upper(token)=$symbol', {
+    return await wrapSqliteGet(this.db, 'select count(distinct id) as total_account, sum(total_request) as total_request, sum(amount) as amount, count(distinct address) as total_address from user where upper(token)=$symbol', {
+      '$symbol': upperCase(symbol)
+    })
+  }
+
+  async querySymbolDetail (symbol: string) {
+    return await wrapSqliteAll(this.db, 'select id as account, count(distinct address) as total_address, sum(total_request) as total_request, sum(amount) as amount from user where upper(token)=$symbol group by id', {
       '$symbol': upperCase(symbol)
     })
   }
@@ -104,6 +110,18 @@ export class Storage {
 function wrapSqliteGet (db: Database, sql: string, params: any): Promise<any> {
   return new Promise((resolve, reject) => {
     db.get(sql, params, (err, rows) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(rows)
+      }
+    })
+  })
+}
+
+function wrapSqliteAll (db: Database, sql: string, params: any): Promise<any> {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
       if (err) {
         reject(err)
       } else {

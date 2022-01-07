@@ -25,7 +25,7 @@ export const loggerMiddware: Middleware = async (ctx, next) => {
     method: ctx.method,
     url: ctx.originalUrl,
     params: ctx.request.body,
-    result: ctx.response.body,
+    // result: ctx.response.body,
     status: ctx.status,
   });
 };

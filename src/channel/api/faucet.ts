@@ -30,12 +30,12 @@ export const sendAssets = (service: Service, storage: Storage, config: Config['c
 
     ctx.response.body = {
       code: 200,
-      mssage: result,
+      message: result,
     };
   } catch (e) {
     ctx.response.body = {
       code: 500,
-      mssage: e.message,
+      message: e.message,
     };
   }
 };
