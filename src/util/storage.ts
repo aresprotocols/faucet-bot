@@ -101,7 +101,17 @@ export class Storage {
   }
 
   async querySymbolDetail (symbol: string) {
-    return await wrapSqliteAll(this.db, 'select id as account, count(distinct address) as total_address, sum(total_request) as total_request, sum(amount) as amount from user where upper(token)=$symbol group by id', {
+    const sql = `select  id                      as account,
+                         username,
+                         last_name,
+                         first_name,
+                         sum(total_request)      as total_request,
+                         sum(amount)             as amount,
+                         count(distinct address) as total_address
+                from user
+                where upper(token) = $symbol
+                group by id`
+    return await wrapSqliteAll(this.db, sql, {
       '$symbol': upperCase(symbol)
     })
   }
