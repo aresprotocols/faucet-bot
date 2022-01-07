@@ -7,6 +7,9 @@ export interface Config {
     redis: {
       url: string;
     };
+    sqlite: {
+      path: string
+    }
   };
   faucet: {
     endpoint: string;

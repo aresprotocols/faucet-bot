@@ -4,6 +4,7 @@ import { Service } from "../services";
 import { Config } from "../util/config";
 import { ChannelBase } from "./base";
 import logger from "../util/logger";
+import { SendConfig } from '../types'
 
 interface MatrixChannelConfig {
   config: Config["channel"]["matrix"];
@@ -47,10 +48,11 @@ export class MatrixChannel extends ChannelBase {
   }
 
   sendSuccessMessage(
-    channel: Record<string, string>,
-    amount: string,
+    channel: Record<string, string | undefined>,
+    configs: SendConfig,
     tx: string
   ) {
+    const amount = this.service.convertSendConfigToString(configs)
     this.client.sendHtmlMessage(
       channel.roomId,
       "",

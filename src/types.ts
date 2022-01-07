@@ -6,4 +6,4 @@ export type SendConfig = {
   balance: string;
 }[];
 
-export type MessageHandler = (channel: Record<string, string>, tokens: string, tx: string) => void;
+export type MessageHandler = (channel: Record<string, string | undefined>, configs: SendConfig, tx: string) => void;

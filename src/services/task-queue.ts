@@ -4,7 +4,7 @@ import { SendConfig } from "../types";
 
 export interface TaskData {
   address: string;
-  channel: Record<string, string>;
+  channel: Record<string, string | undefined>;
   params: SendConfig;
   strategy: string
 }

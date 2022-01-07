@@ -1,10 +1,11 @@
 import { Config } from '../util/config'
 import { Storage } from '../util/storage'
-import { Service } from '../services'
+import { formatToReadable, Service } from '../services'
 import { ChannelBase } from './base'
 import * as sdk from 'telegraf'
-import { Message } from 'typegram'
+import { Message ,User} from 'typegram'
 import { Keyring } from '@polkadot/api'
+import { SendConfig } from '../types'
 
 interface TelegramChannelConfig {
   config: Config['channel']['telegram'];
@@ -84,6 +85,10 @@ export class TelegramChannel extends ChannelBase {
             name: this.channelName,
             account: `${account}`,
             accountName: name,
+            username: msg.from?.username,
+            first_name: msg.from?.first_name,
+            last_name: msg.from?.last_name,
+            account_id: msg.from?.id.toString()
           },
         });
         ctx.reply(this.service.getMessage('tips'))
@@ -103,11 +108,25 @@ export class TelegramChannel extends ChannelBase {
   }
 
   sendSuccessMessage (
-    channel: Record<string, string>,
-    amount: string,
+    channel: Record<string, string|undefined>,
+    configs: SendConfig,
     tx: string
   ) {
-    this.client.telegram.sendMessage(channel.chatId,
+    const amount = this.service.convertSendConfigToString(configs)
+    const chatId = channel.chatId ? channel.chatId : ''
+    const user: User = {
+      first_name: channel.first_name ? channel.first_name : '',
+      last_name: channel.last_name,
+      id: parseInt(channel.account_id ? channel.account_id : '0', 10),
+      is_bot: false,
+      username: channel.username
+    }
+    for (let index in configs){
+      let item = configs[index]
+      //TODO read decimal from chain
+      this.storage.insertOrUpdateUser(user, item.dest, item.token, formatToReadable(item.balance, 12))
+    }
+    this.client.telegram.sendMessage(chatId,
       this.service.getMessage("success", {
         amount,
         tx,

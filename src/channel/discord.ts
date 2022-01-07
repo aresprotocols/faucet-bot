@@ -3,6 +3,7 @@ import { Storage } from "../util/storage";
 import { Service } from "../services";
 import { Config } from "../util/config";
 import { ChannelBase } from "./base";
+import { SendConfig } from '../types'
 
 interface DiscordChannelConfig {
   config: Config["channel"]["discord"];
@@ -37,12 +38,14 @@ export class DiscordChannel extends ChannelBase {
   }
 
   sendSuccessMessage(
-    channelInfo: Record<string, string>,
-    amount: string,
+    channelInfo: Record<string, string | undefined>,
+    configs: SendConfig,
     tx: string
   ) {
+    const channelId = channelInfo.channelId  ? channelInfo.channelId  : ''
+    const amount = this.service.convertSendConfigToString(configs)
     const channel = (this.client.channels.cache.get(
-      channelInfo.channelId
+      channelId
     ) as any) as Discord.TextChannel;
 
     channel.send(

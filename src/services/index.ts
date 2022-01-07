@@ -1,19 +1,19 @@
-import { ApiPromise } from "@polkadot/api";
-import { add, template } from "lodash";
-import { Token, FixedPointNumber } from "@acala-network/sdk-core"
-import { ITuple } from "@polkadot/types/types";
-import { Balance, CurrencyId } from "@acala-network/types/interfaces";
-import { DispatchError } from "@polkadot/types/interfaces";
-import { ApiOptions } from "@polkadot/api/types";
-import { KeyringPair } from "@polkadot/keyring/types";
+import { ApiPromise } from '@polkadot/api'
+import { template } from 'lodash'
+import { FixedPointNumber } from '@acala-network/sdk-core'
+import { ITuple } from '@polkadot/types/types'
+import { Balance } from '@acala-network/types/interfaces'
+import { DispatchError } from '@polkadot/types/interfaces'
+import { ApiOptions } from '@polkadot/api/types'
+import { KeyringPair } from '@polkadot/keyring/types'
 
-import { Config } from "../util/config";
-import { Storage } from "../util/storage";
-import { SendConfig, MessageHandler } from "../types";
-import { TaskQueue, TaskData } from "./task-queue";
-import logger from "../util/logger";
-import { Deferred } from "../util/deferred";
-import { WalletPromise } from "@acala-network/sdk-wallet";
+import { Config } from '../util/config'
+import { Storage } from '../util/storage'
+import { MessageHandler, SendConfig } from '../types'
+import { TaskData, TaskQueue } from './task-queue'
+import logger from '../util/logger'
+import { Deferred } from '../util/deferred'
+import { WalletPromise } from '@acala-network/sdk-wallet'
 
 interface FaucetServiceConfig {
   template: Config["template"];
@@ -28,7 +28,7 @@ interface RequestFaucetParams {
   channel: {
     name: string;
     account: string;
-  } & Record<string, string>;
+  } & Record<string, string|undefined>;
 }
 
 export function formatToReadable(
@@ -109,7 +109,8 @@ export class Service {
     this.task.process((task: TaskData) => {
       const { address, channel, strategy, params } = task;
       const account = channel.account;
-      const channelName = channel.name;
+      let channelName = channel.name;
+      if (channelName == null) channelName = ''
       const sendMessage = this.getMessageHandler(channelName);
 
       return this.sendTokens(params)
@@ -121,19 +122,7 @@ export class Service {
 
           if (!sendMessage) return;
 
-          sendMessage(
-            channel,
-            params
-	      .map((item) => {
-          if (item.token == 'DEFAULT') {
-            return `${this.chainToken}: ${formatToReadable(item.balance, this.chainDecimals)}`
-          } else {
-            return `${item.token}: ${formatToReadable(item.balance, this.wallet.getToken(item.token).decimal)}`
-          }
-        })
-              .join(", "),
-            tx
-          );
+          sendMessage(channel, params, tx);
         })
         .catch(async (e) => {
           logger.error(e);
@@ -270,6 +259,16 @@ export class Service {
         this.api.tx.currencies.transfer(dest, { Token: token }, balance)
       )
     );
+  }
+
+  public convertSendConfigToString (configs: SendConfig): string {
+    return configs.map((item) => {
+      if (item.token == 'DEFAULT') {
+        return `${this.chainToken}: ${formatToReadable(item.balance, this.chainDecimals)}`
+      } else {
+        return `${item.token}: ${formatToReadable(item.balance, this.wallet.getToken(item.token).decimal)}`
+      }
+    }).join(', ')
   }
 
   public usage() {
