@@ -3,3 +3,6 @@ config.toml
 *.log
 hello-bot.json
 .env
+empty_info.db
+info.db
+data/dump.rdb
