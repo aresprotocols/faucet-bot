@@ -1,4 +1,4 @@
-// Copyright 2017-2021 @polkadot/apps-config authors & contributors
+// Copyright 2017-2022 @polkadot/apps-config authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { OverrideBundleDefinition } from '@polkadot/types/types';
@@ -17,11 +17,15 @@ const definitions: OverrideBundleDefinition = {
         Address: 'MultiAddress',
         AskPeriodNum: 'u64',
         AskPointNum: 'u32',
-        AuthorityAres: "AccountId",
+        AuthorityAres: 'AccountId',
         AccountParticipateEstimates: {
           account: 'AccountId',
-          estimates: 'u64',
-          eth_address: 'Option<Bytes>'
+          end: 'BlockNumber',
+          estimates: 'Option<u64>',
+          range_index: 'Option<u8>',
+          eth_address: 'Option<Bytes>',
+          multiplier: 'MultiplierOption',
+          reward: 'u128'
         },
         AresPriceData: {
           price: 'u64',
@@ -29,7 +33,7 @@ const definitions: OverrideBundleDefinition = {
           create_bn: 'BlockNumber',
           fraction_len: 'FractionLength',
           raw_number: 'JsonNumberValue',
-          timestamp: 'u64',
+          timestamp: 'u64'
         },
         BalanceOf: 'Balance',
         ChooseWinnersPayload: {
@@ -48,23 +52,43 @@ const definitions: OverrideBundleDefinition = {
             'Completed'
           ]
         },
+        EstimatesType: {
+          _enum: [
+            'DEVIATION', 'RANGE'
+          ]
+        },
         FractionLength: 'u32',
         HttpError: {
           _enum: {
             IoErr: 'Bytes',
             TimeOut: 'Bytes',
-            StatusErr: '(Bytes,u16)' ,
+            StatusErr: '(Bytes,u16)',
             ParseErr: 'Bytes'
           }
         },
-        StatusErr: '(u16)',
-        LookupSource: 'MultiAddress',
-        RequestInterval: 'u8',
+        HttpErrTracePayload: {
+          trace_data: 'HttpErrTraceData<BlockNumber, AuthorityId>',
+          auth: 'AuthorityId',
+          public: 'MultiSigner'
+        },
+        HttpErrTraceData: {
+          block_number: 'BlockNumber',
+          err_auth: 'AuthorityId',
+          err_status: 'HttpError',
+          tip: 'Bytes'
+        },
         JsonNumberValue: {
           integer: 'u64',
           fraction: 'u64',
           fraction_length: 'u32',
           exponent: 'u32'
+        },
+        Keys: 'SessionKeys3',
+        LookupSource: 'MultiAddress',
+        MultiplierOption: {
+          _enum: [
+            'Base1', 'Base2', 'Base5'
+          ]
         },
         OcwControlData: {
           need_verifier_check: 'bool',
@@ -77,18 +101,20 @@ const definitions: OverrideBundleDefinition = {
           amount: 'BalanceOf',
           is_income: 'bool'
         },
+        PurchasedId: 'Bytes',
+        PriceKey: 'Bytes',
         PreCheckPayload: {
+          block_number: 'BlockNumber',
           pre_check_stash: 'AccountId',
           pre_check_auth: 'AuthorityId',
           auth: 'AuthorityId',
-          block_number: 'BlockNumber',
           public: 'MultiSigner'
         },
         PreCheckResultPayload: {
-          pre_check_stash: 'AccountId',
-          pre_check_auth: 'AuthorityId',
           block_number: 'BlockNumber',
           pre_check_list: 'Vec<PreCheckStruct>',
+          pre_check_stash: 'AccountId',
+          pre_check_auth: 'AuthorityId',
           public: 'MultiSigner'
         },
         PreCheckCompareLog: {
@@ -99,27 +125,17 @@ const definitions: OverrideBundleDefinition = {
         PreCheckStruct: {
           price_key: 'Vec<u8>',
           number_val: 'JsonNumberValue',
-          max_offset: 'Percent'
+          max_offset: 'Percent',
+          timestamp: 'u64'
         },
-        PricePayloadSubPrice: '(Bytes, u64, FractionLength, JsonNumberValue, u64)',
-        PricePayloadSubJumpBlock: '(Bytes, RequestInterval)',
+        PricePayloadSubPrice: '(PriceKey, u64, FractionLength, JsonNumberValue, u64)',
+        PricePayloadSubJumpBlock: '(PriceKey, RequestInterval)',
         PricePayload: {
           block_number: 'BlockNumber',
           price: 'Vec<PricePayloadSubPrice>',
           jump_block: 'Vec<PricePayloadSubJumpBlock>',
           auth: 'AuthorityId',
           public: 'MultiSigner'
-        },
-        HttpErrTracePayload: {
-          trace_data: 'HttpErrTraceData<BlockNumber, AuthorityId>',
-          auth: 'AuthorityId',
-          public: 'MultiSigner'
-        },
-        HttpErrTraceData: {
-          block_number: 'BlockNumber',
-          err_auth: 'AuthorityId',
-          err_status: 'HttpError',
-          tip: 'Bytes',
         },
         PreCheckStatus: {
           _enum: [
@@ -161,16 +177,22 @@ const definitions: OverrideBundleDefinition = {
           public: 'MultiSigner'
         },
         PurchaseId: 'Vec<u8>',
+        RequestInterval: 'u8',
+        StatusErr: '(u16)',
         SymbolEstimatesConfig: {
           symbol: 'Bytes',
+          estimates_type: 'EstimatesType',
           id: 'u64',
-          price: 'Balance',
+          ticket_price: 'Balance',
+          symbol_completed_price: 'u64',
+          symbol_fraction: 'FractionLength',
           start: 'BlockNumber',
-          length: 'BlockNumber',
-          delay: 'BlockNumber',
-          deviation: 'Permill',
-          state: 'EstimatesState',
+          end: 'BlockNumber',
+          distribute: 'BlockNumber',
+          deviation: 'Option<Permill>',
+          range: 'Option<Vec<u64>>',
           total_reward: 'Balance',
+          state: 'EstimatesState'
         }
       }
     }
