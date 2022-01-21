@@ -304,11 +304,12 @@ export class Service {
     }
 
     if (strategyDetail.limit && accountCount >= strategyDetail.limit) {
-      this.getErrorMessage('LIMIT', {
-        account: channel.account || address,
-        limit: strategyDetail.limit,
-        frequency: strategyDetail.frequency.join(' ')
-      })
+      throw new Error(
+        this.getErrorMessage('LIMIT', {
+          account: channel.account || address,
+          limit: strategyDetail.limit,
+          frequency: strategyDetail.frequency.join(' ')
+        }))
     }
 
     // check address limit
