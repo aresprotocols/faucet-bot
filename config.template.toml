@@ -15,6 +15,7 @@ mnemonic = "CUSTOM MNEMONIC"
   
 [faucet.strategy]
 [faucet.strategy.normal]
+checkAccount = true
 amounts = [
   { asset = 'ACA', amount = 2 },
   { asset = 'AUSD', amount = 2000 }
