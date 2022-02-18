@@ -8,6 +8,6 @@ export class ChannelBase {
     ) {}
 
     getCommand (msg: string) {
-        return msg.trim().split(" ");
+        return msg.trim().split(/\s+/);
     }
 }
