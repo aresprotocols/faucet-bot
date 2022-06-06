@@ -34,7 +34,7 @@ async function run() {
     template: config.template,
   });
 
-  const provider = new WsProvider(config.faucet.endpoint);
+  const provider = new WsProvider(config.faucet.endpoint, 10000);
 
   // NOTE: The mapping is done from specName in state.getRuntimeVersion
   // https://github.com/aresprotocols/apps/blob/master/packages/apps-config/src/api/spec/index.ts

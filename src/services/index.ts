@@ -363,6 +363,7 @@ export class Service {
 
       await this.storage.incrKeyCount(`service_${strategy}_${address}`, strategyDetail.frequency);
     } catch (e) {
+      logger.error(e)
       throw new Error(this.getErrorMessage("UPDATE_LIMIT_FAILED"));
     }
 
